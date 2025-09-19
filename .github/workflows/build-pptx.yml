@@ -1,0 +1,25 @@
+name: Build PPTX from Marp deck
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'persediaan_deck.md'
+      - '.github/workflows/build-pptx.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Marp CLI
+        run: npm i -g @marp-team/marp-cli@latest
+      - name: Build PPTX
+        run: marp "persediaan_deck.md" --pptx -o "Manajemen_Persediaan.pptx"
+      - name: Upload PPTX
+        uses: actions/upload-artifact@v4
+        with:
+          name: Manajemen_Persediaan
+          path: Manajemen_Persediaan.pptx
+          if-no-files-found: error

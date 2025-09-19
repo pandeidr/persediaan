@@ -1,0 +1,9 @@
+# PowerPoint files - keep out of version control (available via CI artifacts)
+*.pptx
+*.ppt
+
+# Node modules if installed locally
+node_modules/
+
+# Temporary files
+*.tmp
