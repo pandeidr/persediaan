@@ -37,17 +37,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static files
 app.use('/uploads', express.static('uploads'));
 
-// Database connection
-const { sequelize } = require('./config/database');
-
-// Test database connection
-sequelize.authenticate()
-  .then(() => {
-    console.log('✅ Database connection established successfully.');
-  })
-  .catch(err => {
-    console.error('❌ Unable to connect to the database:', err.message);
-  });
+// Database connection (optional for development without DB)
+let sequelize = null;
+try {
+  const db = require('./config/database');
+  sequelize = db.sequelize;
+  
+  // Test database connection
+  sequelize.authenticate()
+    .then(() => {
+      console.log('✅ Database connection established successfully.');
+    })
+    .catch(err => {
+      console.error('❌ Unable to connect to the database:', err.message);
+      console.log('ℹ️  Server will continue without database for testing purposes.');
+    });
+} catch (error) {
+  console.error('❌ Database configuration error:', error.message);
+  console.log('ℹ️  Server will continue without database for testing purposes.');
+}
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -122,18 +130,26 @@ app.use('*', (req, res) => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM received, shutting down gracefully');
-  sequelize.close().then(() => {
-    console.log('💾 Database connection closed');
+  if (sequelize) {
+    sequelize.close().then(() => {
+      console.log('💾 Database connection closed');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 });
 
 process.on('SIGINT', () => {
   console.log('👋 SIGINT received, shutting down gracefully');
-  sequelize.close().then(() => {
-    console.log('💾 Database connection closed');
+  if (sequelize) {
+    sequelize.close().then(() => {
+      console.log('💾 Database connection closed');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 });
 
 app.listen(PORT, () => {
